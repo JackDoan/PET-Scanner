@@ -47,7 +47,7 @@ def sheet_select(book):
 	sheet = book.sheet_by_index(sheet_index-1)
 	return sheet
 
-def column_to_filter(sheet):
+def column_to_filter(sheet, prompt):
 	i = 1
 	if len(sheet.row_values(0)) >= 40:
 		os.system("mode con: cols=80 lines=" + str(len(sheet.row_values(0))+9))
@@ -56,7 +56,7 @@ def column_to_filter(sheet):
 	for n in sheet.row_values(0):
 		print '\t' + str(i) + ") " + n
 		i = i+1
-	col_to_use = input("Select a column to filter by: ")
+	col_to_use = input(prompt)
 	return int(col_to_use)-1
 
 def filter_params(sheet, col_to_use):
@@ -73,3 +73,4 @@ def filter_params(sheet, col_to_use):
 		i = i+1
 	param = input("Select a value to exclude by: ")
 	return params[int(param)-1]
+
