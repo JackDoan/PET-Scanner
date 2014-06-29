@@ -1,38 +1,56 @@
 import sys, os
 from xlrd import open_workbook
 from xlwt import Workbook
+import pet
 
-def header():
-	print "Personal Excel Translation Scanner"
-	print "=================================="
-	print ""
-
-def file_select():
-	donegood = 0
-	while donegood == 0:
-		files_to_use = []
-		i = 0
-		#shamelessly stolen from StackOverflow: http://stackoverflow.com/questions/11968976/python-list-files-in-the-current-directory-only
-		files = [f for f in os.listdir('.') if os.path.isfile(f)]
-		for f in files:
-			if '~$' in f: pass
-			elif '.xls' in f:
-				i = i+1 
-				print str(i) + ") " + str(f)
-				files_to_use.append(f)
-			elif '.xlsx' in f:
-				i = i+1 
-				print str(i) + ") " + str(f)
-				files_to_use.append(f)
-		print ""
-		files_index_use = input("Choose an Excel file in this directory [1]: ")
-		try:
-			print files_to_use[int(files_index_use-1)]
-			donegood = 1
-		except:
-			donegood = 0
-	return files_to_use[int(files_index_use-1)]
-header()
-using = file_select()
-print ""
+pet.header()
+using = pet.file_select()
+pet.header()
 print "Using " + using
+print ""
+book = open_workbook('census.xlsx')
+sheet = pet.sheet_select(book)
+pet.header()
+print "\nUsing sheet " + str(book.sheet_names()[0]) + " from " + using + "\n"
+print str(sheet.nrows) + ' rows by ' + str(sheet.ncols) + ' columns'
+pet.header()
+col_to_filter = pet.column_to_filter(sheet)
+pet.header()
+print 'Building filter parameters...'
+param = pet.filter_params(sheet, col_to_filter)
+pet.header()
+print 'Selecting all where column \"' + str(sheet.cell(0,col_to_filter).value) + '\" is \"' + param + '\"'
+
+
+#r = row
+r = 0
+rows_we_want = [0]
+while r <= sheet.nrows:
+	try:
+		if str(sheet.cell(r, col_to_filter).value) == param:
+ 			rows_we_want.append(int(r))
+ 		r = r+1
+ 	except IndexError:
+ 		break
+print '\nProcessed ' + str(len(rows_we_want)) + ' rows'
+
+
+
+newbook = Workbook()
+newsheet = newbook.add_sheet('Sheet 1')
+
+newrow = 0
+c = 0
+
+for r in rows_we_want:
+	for d in sheet.row_values(r):
+		if c <= sheet.ncols:
+			#print 'row: ' + str(r) + 'col: ' + str(c) + 'data: ' + str(d)
+			newsheet.row(newrow).write(c,str(d))
+			c = c+1
+	newrow = newrow+1
+	for d in sheet.row_values(r):c = 0
+
+newbook.save('test.xls')
+
+
